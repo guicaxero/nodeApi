@@ -1,13 +1,19 @@
 import mongoose from "mongoose";
+import ErroBase from "../erros/ErroBase.js";
+import RequisicaoIncorreta from "../erros/RequisicaoIncorreta.js";
+import ErroValidacao from "../erros/ErroValidacao.js";
 
 // eslint-disable-next-line no-unused-vars
 function manipularErros(erro, req, res, next) {
-    console.log(erro)
     if ( erro instanceof mongoose.Error.CastError) {
-        res.status(400).send({message: `Dados fornecidos estão incorretos`});
+        new RequisicaoIncorreta().enviarResposta(res);
         return;    
     }
-    res.status(500).send(`${erro.message} - Falha na requisição`)
+    if(erro instanceof mongoose.Error.ValidationError) {
+        new ErroValidacao(erro).enviarResposta(res)
+        return;  
+    }
+   new ErroBase().enviarResposta(res)
 }
 
 export default manipularErros

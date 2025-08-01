@@ -16,8 +16,15 @@ class LivroController {
         const novoLivro = req.body
         try {
             const autorEncontrado = await autor.findById(novoLivro.autor);
-            const livroCompleto = {...novoLivro, autor: { ...autorEncontrado._doc}};
+            if(!autorEncontrado) {
+                return res.status(404).send("Autor não encontrado para cadastrar o livro!")
+            }
+            const livroCompleto = {
+                ...novoLivro, 
+                autor: { ...autorEncontrado._doc}
+            };
             const novoLivroCriado = await livro.create(livroCompleto);
+            
             res.status(201).json({ 
                     message: "Livro adicionado com sucesso",
                     livro: novoLivroCriado
