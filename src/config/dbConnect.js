@@ -5,4 +5,4 @@ async function connectDatabase() {
     return mongoose.connection
 };
 
-export default connectDatabase;
+export default connectDatabase
