@@ -2,6 +2,7 @@ import express from "express";
 import connectDatabase from "./config/dbConnect.js";
 import routes from "./routes/index.js";
 import manipularErros from "./middlewares/manipuladorDeErros.js";
+import manipulador404 from "./middlewares/manipulardor404.js";
 
 const connect = await connectDatabase();
 
@@ -15,6 +16,8 @@ connect.once("open", () => {
 
 const app = express();
 routes(app);
+
+app.use(manipulador404);
 
 // eslint-disable-next-line no-unused-vars
 app.use(manipularErros)

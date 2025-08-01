@@ -1,3 +1,4 @@
+import NotFound from "../erros/NotFound.js";
 import { autor } from "../models/Autor.js";
 import livro from "../models/Livro.js";
 
@@ -16,9 +17,9 @@ class LivroController {
         const novoLivro = req.body
         try {
             const autorEncontrado = await autor.findById(novoLivro.autor);
-            if(!autorEncontrado) {
-                return res.status(404).send("Autor não encontrado para cadastrar o livro!")
-            }
+            if (!autorEncontrado) {
+                return next(new NotFound("É necessário um autor para cadastrar um livro!"));
+            } 
             const livroCompleto = {
                 ...novoLivro, 
                 autor: { ...autorEncontrado._doc}
@@ -37,9 +38,12 @@ class LivroController {
     static async buscarLivro(req, res, next) {
         try{
             const livroEncontrado = await livro.findById(req.params.id)
+            if(!livroEncontrado) {
+                return next(new NotFound("Livro não encontrado!"));
+            }
+
             const nomeLivro = livroEncontrado.title
-            res
-            .status(200).json({
+            res.status(200).json({
                 livro: livroEncontrado,
                 message: `O livro ${nomeLivro} foi encontrado!`
             })
@@ -50,11 +54,12 @@ class LivroController {
 
     static async alterarLivro(req, res, next) {
         try{
-            const livroAlterado = await livro.findByIdAndUpdate(
-                req.params.id,
-                {title: req.body.title},
-                {new: true}
-            )
+            const id = req.params.id
+            const livroAlterado = await livro.findByIdAndUpdate(id, req.body, {new: true})
+            if(!livroAlterado) {
+                return next(new NotFound("livro não encontrado!"))
+            }
+
             res.status(200).json({
                 livro: livroAlterado,
                 message: `Livro ${livroAlterado.title} Alterado com sucesso`
@@ -67,6 +72,10 @@ class LivroController {
     static async deletarLivro(req, res, next) {
         try {
             const livroDeletado = await livro.findByIdAndDelete(req.params.id)
+            if (!livroDeletado) {
+                return next(new NotFound("Livro não encontrado!"));
+            }
+
             res.status(200).json({
                 livro: livroDeletado,
                 message: "Livro deletado."
@@ -81,6 +90,10 @@ class LivroController {
         try{
             const editora = req.query.editora
             const livroDasEditoras = await livro.find({ editora: editora })
+            if( !livroDasEditoras) {
+                return next(new NotFound("Não foi encontrado nenhum livro dessa editora!"))
+            }
+
             res.status(200).json({
                 livros: livroDasEditoras
             })

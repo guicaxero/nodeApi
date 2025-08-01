@@ -1,4 +1,5 @@
 import {autor} from "../models/Autor.js"
+import NotFound from "../erros/NotFound.js"
 
 class AutorController {
 
@@ -29,14 +30,13 @@ class AutorController {
             const autorEncontrado = await autor.findById(id)
             const nomeAutor = autorEncontrado?.nome
 
-            if (autorEncontrado) {
-                res.status(200).json({
-                    autor: autorEncontrado,
-                    message: `O autor ${nomeAutor} foi encontrado!`
-                })
-                return;
+            if (!autorEncontrado) {
+                return next(new NotFound("Autor não encontrado!"));
             } 
-            res.status(404).send("Autor não encontrado!")
+            res.status(200).json({
+                autor: autorEncontrado,
+                message: `O autor ${nomeAutor} foi encontrado!`
+            })
         } catch (erro) {
             next(erro)
         }
@@ -47,14 +47,13 @@ class AutorController {
             const id = req.params.id
             const autorAtual = await autor.findById(id)
             const autorAlterado = await autor.findByIdAndUpdate(id, req.body, {new: true})
-            if(autorAtual) {
-                res.status(200).json({
-                    autor: autorAlterado,
-                    message: `Autor ${autorAtual.nome} Alterado com sucesso`
-                })
-                return
+            if(!autorAtual) {
+                return next(new NotFound("Autor não encontrado"));
             }
-            res.status(404).send("Autor não encontrado")
+            res.status(200).json({
+                autor: autorAlterado,
+                message: `Autor ${autorAtual.nome} Alterado com sucesso`
+            })
         } catch (erro) {
             next(erro)
         }
@@ -62,7 +61,10 @@ class AutorController {
 
     static async deletarAutor(req, res, next) {
         try {
-            const autorDeletado = await autor.findOneAndDelete(req.params.id)
+            const autorDeletado = await autor.findByIdAndDelete(req.params.id)
+            if(!autorDeletado) {
+                return next(new NotFound("Autor não encontrado!"));
+            }
             res.status(200).json({
                 autor: autorDeletado,
                 message: "Autor deletado."
