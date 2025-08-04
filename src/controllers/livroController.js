@@ -7,6 +7,9 @@ class LivroController {
     static async listarLivros (req, res, next) {
         try {
             const listaLivro = await livros.find({})
+            if (!listaLivro.length) {
+                next(new NotFound("Nenhum livro encontrado."))
+            }
             res.status(200).json(listaLivro)
         } catch (erro) {
             next(erro)
@@ -86,24 +89,48 @@ class LivroController {
 
     };
 
-    static async buscarLivroPorEditora(req, res, next) {
+    static async buscarLivroPorParametro(req, res, next) {
         try{
-            const editora = req.query.editora
-            const livroDasEditoras = await livros.find({ editora: editora })
-            if( !livroDasEditoras) {
-                return next(new NotFound("Não foi encontrado nenhum livro dessa editora!"))
+            const busca = await processaBusca(req.query)
+
+            const livroResultado = await livros.find(busca)
+            if( !livroResultado.length ) {
+                return res.status(200).json({
+                    livro: [],
+                    message: "Não foi encontrado nenhum livro!"
+                })
+                // return next(new NotFound("Não foi encontrado nenhum livro!"))
             }
 
             res.status(200).json({
-                livros: livroDasEditoras
+                livros: livroResultado
             })
         } catch(erro) {
             next(erro)
         }
     }
 
-
+    
 };
+
+async function processaBusca(params) {
+    const {editora, title, minPaginas, maxPaginas, nomeAutor} = params;
+
+    const busca = {};
+
+    if (minPaginas || maxPaginas) busca.paginas = {}
+
+    if (minPaginas) busca.paginas.$gte = Number(minPaginas)
+    if (maxPaginas) busca.paginas.$lte = Number(maxPaginas)
+
+    if (editora) busca.editora = editora;
+    if (title) busca.title = { $regex: title, $options: "i" };
+
+    if (nomeAutor) {
+        busca["autor.nome"] = { $regex: nomeAutor, $options: "i" } 
+    }
+    return busca
+}
 
 
 export default LivroController;
