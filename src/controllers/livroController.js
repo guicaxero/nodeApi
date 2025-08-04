@@ -1,12 +1,12 @@
 import NotFound from "../erros/NotFound.js";
-import { autor } from "../models/Autor.js";
-import livro from "../models/Livro.js";
+import { autor } from "../models/index.js";
+import {livros} from "../models/index.js";
 
 class LivroController {
 
     static async listarLivros (req, res, next) {
         try {
-            const listaLivro = await livro.find({})
+            const listaLivro = await livros.find({})
             res.status(200).json(listaLivro)
         } catch (erro) {
             next(erro)
@@ -24,7 +24,7 @@ class LivroController {
                 ...novoLivro, 
                 autor: { ...autorEncontrado._doc}
             };
-            const novoLivroCriado = await livro.create(livroCompleto);
+            const novoLivroCriado = await livros.create(livroCompleto);
             
             res.status(201).json({ 
                     message: "Livro adicionado com sucesso",
@@ -37,7 +37,7 @@ class LivroController {
 
     static async buscarLivro(req, res, next) {
         try{
-            const livroEncontrado = await livro.findById(req.params.id)
+            const livroEncontrado = await livros.findById(req.params.id)
             if(!livroEncontrado) {
                 return next(new NotFound("Livro não encontrado!"));
             }
@@ -55,7 +55,7 @@ class LivroController {
     static async alterarLivro(req, res, next) {
         try{
             const id = req.params.id
-            const livroAlterado = await livro.findByIdAndUpdate(id, req.body, {new: true})
+            const livroAlterado = await livros.findByIdAndUpdate(id, req.body, {new: true})
             if(!livroAlterado) {
                 return next(new NotFound("livro não encontrado!"))
             }
@@ -71,7 +71,7 @@ class LivroController {
 
     static async deletarLivro(req, res, next) {
         try {
-            const livroDeletado = await livro.findByIdAndDelete(req.params.id)
+            const livroDeletado = await livros.findByIdAndDelete(req.params.id)
             if (!livroDeletado) {
                 return next(new NotFound("Livro não encontrado!"));
             }
@@ -89,7 +89,7 @@ class LivroController {
     static async buscarLivroPorEditora(req, res, next) {
         try{
             const editora = req.query.editora
-            const livroDasEditoras = await livro.find({ editora: editora })
+            const livroDasEditoras = await livros.find({ editora: editora })
             if( !livroDasEditoras) {
                 return next(new NotFound("Não foi encontrado nenhum livro dessa editora!"))
             }
