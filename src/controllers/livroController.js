@@ -6,11 +6,12 @@ class LivroController {
 
     static async listarLivros (req, res, next) {
         try {
-            const listaLivro = await livros.find({})
-            if (!listaLivro.length) {
-                next(new NotFound("Nenhum livro encontrado."))
-            }
-            res.status(200).json(listaLivro)
+            const buscaLivros = livros.find()
+
+            req.resultado = buscaLivros;
+
+            next();
+
         } catch (erro) {
             next(erro)
         }
@@ -93,18 +94,11 @@ class LivroController {
         try{
             const busca = await processaBusca(req.query)
 
-            const livroResultado = await livros.find(busca)
-            if( !livroResultado.length ) {
-                return res.status(200).json({
-                    livro: [],
-                    message: "Não foi encontrado nenhum livro!"
-                })
-                // return next(new NotFound("Não foi encontrado nenhum livro!"))
-            }
+            const livroResultado = livros.find(busca)
 
-            res.status(200).json({
-                livros: livroResultado
-            })
+            req.resultado = livroResultado
+
+            next()
         } catch(erro) {
             next(erro)
         }
